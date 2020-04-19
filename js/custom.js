@@ -1,81 +1,165 @@
+// JavaScript Document
 
-
-  /*-------------------------------------------------------------------------------
-    PRE LOADER
-  -------------------------------------------------------------------------------*/
-
-  $(window).load(function(){
-    $('.preloader').fadeOut(1000); // set duration in brackets    
-  });
-
-
-
-  /* HTML document is loaded. DOM is ready. 
-  -------------------------------------------*/
-
-  $(document).ready(function() {
-
-
-  /*-------------------------------------------------------------------------------
-    Navigation - Hide mobile menu after clicking on a link
-  -------------------------------------------------------------------------------*/
-
-    $('.navbar-collapse a').click(function(){
-        $(".navbar-collapse").collapse('hide');
+$(window).load(function () {
+    "use strict";
+    // makes sure the whole site is loaded
+    $('#status').fadeOut(); // will first fade out the loading animation
+    $('#preloader').delay(350).fadeOut('slow'); // will fade out the white DIV that covers the website.
+    $('body').delay(350).css({
+        'overflow': 'visible'
     });
+})
 
+$(document).ready(function () {
+    "use strict";
 
-    $(window).scroll(function() {
-    if ($(".navbar").offset().top > 50) {
-        $(".navbar-fixed-top").addClass("top-nav-collapse");
-    } else {
-        $(".navbar-fixed-top").removeClass("top-nav-collapse");
-    }
-  });
+    // scroll menu
+    var sections = $('.section'),
+        nav = $('.navbar-fixed-top,footer'),
+        nav_height = nav.outerHeight();
 
+    $(window).on('scroll', function () {
+        var cur_pos = $(this).scrollTop();
 
+        sections.each(function () {
+            var top = $(this).offset().top - nav_height,
+                bottom = top + $(this).outerHeight();
 
-  /*-------------------------------------------------------------------------------
-    jQuery Parallax
-  -------------------------------------------------------------------------------*/
+            if (cur_pos >= top && cur_pos <= bottom) {
+                nav.find('a').removeClass('active');
+                sections.removeClass('active');
 
-    function initParallax() {
-    $('#home').parallax("100%", 0.1);
-    $('#about').parallax("100%", 0.3);
-    $('#service').parallax("100%", 0.2);
-    $('#experience').parallax("100%", 0.3);
-    $('#education').parallax("100%", 0.1);
-    $('#quotes').parallax("100%", 0.3);
-    $('#contact').parallax("100%", 0.1);
-    $('footer').parallax("100%", 0.2);
-
-  }
-  initParallax();
-
-
-
-  /*-------------------------------------------------------------------------------
-    smoothScroll js
-  -------------------------------------------------------------------------------*/
-  
-    $(function() {
-        $('.custom-navbar a, #home a').bind('click', function(event) {
-            var $anchor = $(this);
-            $('html, body').stop().animate({
-                scrollTop: $($anchor.attr('href')).offset().top - 49
-            }, 1000);
-            event.preventDefault();
+                $(this).addClass('active');
+                nav.find('a[href="#' + $(this).attr('id') + '"]').addClass('active');
+            }
         });
     });
-  
+
+    nav.find('a').on('click', function () {
+        var $el = $(this),
+            id = $el.attr('href');
+
+        $('html, body').animate({
+            scrollTop: $(id).offset().top - nav_height + 2
+        }, 600);
+
+        return false;
+    });
 
 
-  /*-------------------------------------------------------------------------------
-    wow js - Animation js
-  -------------------------------------------------------------------------------*/
+    // Menu opacity
+    if ($(window).scrollTop() > 80) {
+        $(".navbar-fixed-top").addClass("bg-nav");
+    } else {
+        $(".navbar-fixed-top").removeClass("bg-nav");
+    }
+    $(window).scroll(function () {
+        if ($(window).scrollTop() > 80) {
+            $(".navbar-fixed-top").addClass("bg-nav");
+        } else {
+            $(".navbar-fixed-top").removeClass("bg-nav");
+        }
+    });
 
-  new WOW({ mobile: false }).init();
 
 
-  });
+    // Parallax
+    var parallax = function () {
+        $(window).stellar();
+    };
 
+    $(function () {
+        parallax();
+    });
+
+    // AOS
+    AOS.init({
+        duration: 1200,
+        once: true,
+        disable: 'mobile'
+    });
+
+    //  isotope
+    $('#projects').waitForImages(function () {
+        var $container = $('.portfolio_container');
+        $container.isotope({
+            filter: '*',
+        });
+
+        $('.portfolio_filter a').click(function () {
+            $('.portfolio_filter .active').removeClass('active');
+            $(this).addClass('active');
+
+            var selector = $(this).attr('data-filter');
+            $container.isotope({
+                filter: selector,
+                animationOptions: {
+                    duration: 500,
+                    animationEngine: "jquery"
+                }
+            });
+            return false;
+        });
+
+    });
+
+    //animatedModal
+    $("#demo01,#demo02,#demo03,#demo04,#demo05,#demo06,#demo07,#demo08,#demo09").animatedModal();
+
+    // Contact Form 	
+
+    // validate contact form
+    $(function () {
+        $('#contact-form').validate({
+            rules: {
+                name: {
+                    required: true,
+                    minlength: 2
+                },
+                email: {
+                    required: true
+                },
+                phone: {
+                    required: false
+                },
+                message: {
+                    required: true
+                }
+
+            },
+            messages: {
+                name: {
+                    required: "This field is required",
+                    minlength: "your name must consist of at least 2 characters"
+                },
+                email: {
+                    required: "This field is required"
+                },
+                message: {
+                    required: "This field is required"
+                }
+            },
+            submitHandler: function (form) {
+                $(form).ajaxSubmit({
+                    type: "POST",
+                    data: $(form).serialize(),
+                    url: "process.php",
+                    success: function () {
+                        $('#contact :input').attr('disabled', 'disabled');
+                        $('#contact').fadeTo("slow", 1, function () {
+                            $(this).find(':input').attr('disabled', 'disabled');
+                            $(this).find('label').css('cursor', 'default');
+                            $('#success').fadeIn();
+                        });
+                    },
+                    error: function () {
+                        $('#contact').fadeTo("slow", 1, function () {
+                            $('#error').fadeIn();
+                        });
+                    }
+                });
+            }
+        });
+
+    });
+});
